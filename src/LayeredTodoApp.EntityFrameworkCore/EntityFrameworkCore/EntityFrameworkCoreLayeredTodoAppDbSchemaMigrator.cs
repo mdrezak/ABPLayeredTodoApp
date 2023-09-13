@@ -1,0 +1,34 @@
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using LayeredTodoApp.Data;
+using Volo.Abp.DependencyInjection;
+
+namespace LayeredTodoApp.EntityFrameworkCore;
+
+public class EntityFrameworkCoreLayeredTodoAppDbSchemaMigrator
+    : ILayeredTodoAppDbSchemaMigrator, ITransientDependency
+{
+    private readonly IServiceProvider _serviceProvider;
+
+    public EntityFrameworkCoreLayeredTodoAppDbSchemaMigrator(
+        IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
+    public async Task MigrateAsync()
+    {
+        /* We intentionally resolving the LayeredTodoAppDbContext
+         * from IServiceProvider (instead of directly injecting it)
+         * to properly get the connection string of the current tenant in the
+         * current scope.
+         */
+
+        await _serviceProvider
+            .GetRequiredService<LayeredTodoAppDbContext>()
+            .Database
+            .MigrateAsync();
+    }
+}
